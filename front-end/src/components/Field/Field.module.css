@@ -1,0 +1,32 @@
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.controle {
+  border: 1.5px solid var(--cinza-claro);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--branco);
+  font-weight: 400;
+}
+
+.controle:focus {
+  border-color: var(--roxo);
+  outline: none;
+}
+
+.invalido {
+  border-color: var(--vermelho);
+}
+
+.campo em {
+  color: var(--vermelho);
+  font-style: normal;
+  font-weight: 400;
+  font-size: 13px;
+}

@@ -1,0 +1,44 @@
+
+.botao {
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pequeno {
+  padding: 5px 12px;
+  font-size: 14px;
+}
+
+.primario {
+  background: var(--roxo);
+  color: var(--branco);
+}
+
+.primario:hover {
+  background: var(--roxo-escuro);
+}
+
+.escuro {
+  background: var(--preto);
+  color: var(--branco);
+}
+
+.contorno {
+  background: var(--branco);
+  color: var(--roxo-escuro);
+  border-color: var(--roxo);
+}
+
+.perigo {
+  background: var(--branco);
+  color: var(--vermelho);
+  border-color: var(--vermelho);
+}
+
+.botao:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

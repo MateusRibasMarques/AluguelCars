@@ -1,0 +1,40 @@
+
+.selo {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1.5px solid;
+}
+
+.EM_ANALISE {
+  background: #ede9fe;
+  color: var(--roxo-escuro);
+  border-color: var(--roxo-claro);
+}
+
+.APROVADO {
+  background: var(--branco);
+  color: var(--roxo-escuro);
+  border-color: var(--roxo);
+}
+
+.CONTRATO_EXECUTADO {
+  background: var(--roxo);
+  color: var(--branco);
+  border-color: var(--roxo);
+}
+
+.REPROVADO {
+  background: var(--preto);
+  color: var(--branco);
+  border-color: var(--preto);
+}
+
+.CANCELADO {
+  background: var(--branco);
+  color: var(--cinza);
+  border-color: var(--cinza-claro);
+  text-decoration: line-through;
+}
