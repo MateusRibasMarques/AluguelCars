@@ -1,0 +1,36 @@
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 640px;
+  border: 1.5px solid var(--preto);
+  border-radius: 14px;
+  padding: 32px;
+}
+
+.duasColunas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.rodape {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.aviso {
+  background: var(--preto);
+  color: var(--branco);
+  padding: 10px 14px;
+  border-radius: 10px;
+}
+
+@media (max-width: 600px) {
+  .duasColunas {
+    grid-template-columns: 1fr;
+  }
+}

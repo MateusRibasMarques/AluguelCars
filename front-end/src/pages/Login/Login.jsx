@@ -1,16 +1,12 @@
 
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext.jsx'
+import { Link } from 'react-router-dom'
 import Field from '../../components/Field/Field.jsx'
 import Button from '../../components/Button/Button.jsx'
 import CarIcon from '../../components/CarIcon/CarIcon.jsx'
 import estilos from './Login.module.css'
 
 export default function Login() {
-  const { login } = useAuth()
-  const navegar = useNavigate()
-
   const [dados, setDados] = useState({
     usuario: '',
     senha: ''
@@ -21,11 +17,7 @@ export default function Login() {
   const enviar = (e) => {
     e.preventDefault()
 
-    if (login(dados.usuario.trim(), dados.senha)) {
-      navegar('/')
-    } else {
-      setErro('Usuário ou senha incorretos. Confira os dados e tente de novo.')
-    }
+    setErro('O login estará disponível quando o backend for conectado.')
   }
 
   return (

@@ -1,0 +1,41 @@
+
+.acoes {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.detalhes {
+  display: grid;
+  gap: 6px;
+  border: 1.5px solid var(--roxo-claro);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.detalhes b {
+  color: var(--roxo-escuro);
+}
+
+.linhaTempo {
+  display: flex;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.etapa {
+  flex: 1;
+  text-align: center;
+  padding: 8px 4px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  background: var(--cinza-claro);
+  color: var(--cinza);
+}
+
+.concluida {
+  background: var(--roxo);
+  color: var(--branco);
+}

@@ -1,6 +1,5 @@
 
 import { useState } from 'react'
-import { useData } from '../../context/DataContext.jsx'
 import PageHeader from '../../components/PageHeader/PageHeader.jsx'
 import Table from '../../components/Table/Table.jsx'
 import Modal from '../../components/Modal/Modal.jsx'
@@ -17,15 +16,11 @@ const clienteVazio = {
   rendimentos: []
 }
 
-const fmtMoeda = (v) =>
-  Number(v).toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  })
-
 export default function Clientes() {
-  const { clientes, salvarCliente, excluirCliente } = useData()
   const [edicao, setEdicao] = useState(null)
+
+  // Sem backend, a tabela permanece vazia.
+  const clientes = []
 
   const mudar = (campo) => (e) =>
     setEdicao({ ...edicao, [campo]: e.target.value })
@@ -38,7 +33,9 @@ export default function Clientes() {
       )
     })
 
-  const adicionarRendimento = () =>
+  const adicionarRendimento = () => {
+    if (edicao.rendimentos.length >= 3) return
+
     setEdicao({
       ...edicao,
       rendimentos: [
@@ -46,6 +43,7 @@ export default function Clientes() {
         { empregador: '', valor: '' }
       ]
     })
+  }
 
   const removerRendimento = (i) =>
     setEdicao({
@@ -55,15 +53,6 @@ export default function Clientes() {
 
   const enviar = (e) => {
     e.preventDefault()
-
-    salvarCliente({
-      ...edicao,
-      rendimentos: edicao.rendimentos.map((r) => ({
-        ...r,
-        valor: Number(r.valor)
-      }))
-    })
-
     setEdicao(null)
   }
 
@@ -75,33 +64,25 @@ export default function Clientes() {
       key: 'renda',
       label: 'Renda total',
       render: (c) =>
-        fmtMoeda(
+        Number(
           c.rendimentos.reduce(
             (soma, r) => soma + Number(r.valor), 0
           )
-        )
+        ).toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        })
     },
     {
       key: 'acoes',
       label: 'Ações',
-      render: (c) => (
+      render: () => (
         <div className={estilos.acoes}>
-          <Button
-            size="pequeno"
-            variant="contorno"
-            onClick={() => setEdicao(c)}
-          >
+          <Button size="pequeno" variant="contorno" disabled>
             Editar
           </Button>
 
-          <Button
-            size="pequeno"
-            variant="perigo"
-            onClick={() =>
-              window.confirm(`Excluir ${c.nome}?`) &&
-              excluirCliente(c.id)
-            }
-          >
+          <Button size="pequeno" variant="perigo" disabled>
             Excluir
           </Button>
         </div>
@@ -117,7 +98,7 @@ export default function Clientes() {
         action={
           <Button
             id="botao-novo-cliente"
-            onClick={() => setEdicao(clienteVazio)}
+            onClick={() => setEdicao({ ...clienteVazio, rendimentos: [] })}
           >
             Novo cliente
           </Button>
@@ -128,7 +109,7 @@ export default function Clientes() {
 
       {edicao && (
         <Modal
-          title={edicao.id ? 'Editar cliente' : 'Novo cliente'}
+          title="Novo cliente"
           onClose={() => setEdicao(null)}
         >
           <form
@@ -180,6 +161,7 @@ export default function Clientes() {
 
             <div id="lista-rendimentos">
               <strong>Rendimentos</strong>
+
               <span className={estilos.apagado}>
                 ({edicao.rendimentos.length}/3)
               </span>

@@ -1,18 +1,12 @@
 
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext.jsx'
-import { useData } from '../../context/DataContext.jsx'
+import { Link } from 'react-router-dom'
 import Field from '../../components/Field/Field.jsx'
 import Button from '../../components/Button/Button.jsx'
 import CarIcon from '../../components/CarIcon/CarIcon.jsx'
 import estilos from './Cadastro.module.css'
 
 export default function Cadastro() {
-  const { registrar } = useAuth()
-  const { salvarCliente } = useData()
-  const navegar = useNavigate()
-
   const [dados, setDados] = useState({
     nome: '',
     usuario: '',
@@ -34,24 +28,7 @@ export default function Cadastro() {
       return setErro('A senha precisa ter ao menos 3 caracteres.')
     }
 
-    const novo = { ...dados }
-
-    if (dados.role === 'CLIENTE') {
-      novo.clienteId = salvarCliente({
-        nome: dados.nome,
-        rg: '',
-        cpf: '',
-        endereco: '',
-        profissao: '',
-        rendimentos: []
-      })
-    }
-
-    if (registrar(novo)) {
-      navegar('/')
-    } else {
-      setErro('Esse usuário já existe. Escolha outro nome de usuário.')
-    }
+    setErro('O cadastro estará disponível quando o backend for conectado.')
   }
 
   return (
