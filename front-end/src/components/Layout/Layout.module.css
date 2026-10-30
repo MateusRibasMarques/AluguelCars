@@ -1,0 +1,13 @@
+
+.estrutura {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.principal {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 40px 32px;
+}

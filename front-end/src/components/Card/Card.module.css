@@ -1,0 +1,29 @@
+
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px;
+  border-radius: 10px;
+  background: var(--branco);
+  border: 1.5px solid var(--roxo);
+}
+
+.cartao strong {
+  font-size: 38px;
+  color: var(--roxo-escuro);
+}
+
+.cartao small {
+  color: var(--cinza);
+}
+
+.escuro {
+  background: var(--preto);
+  border-color: var(--preto);
+  color: var(--branco);
+}
+
+.escuro strong {
+  color: var(--roxo-claro);
+}
