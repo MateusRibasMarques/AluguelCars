@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 import Layout from './components/Layout/Layout.jsx'
+import RotaPrivada from './components/RotaPrivada/RotaPrivada.jsx'
 
 import Login from './pages/Login/Login.jsx'
 import Cadastro from './pages/Cadastro/Cadastro.jsx'
@@ -19,13 +20,15 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
 
-        <Route element={<Layout />}>
-          <Route path="/" element={<Inicio />} />
-          <Route path="/clientes" element={<Clientes />} />
-          <Route path="/automoveis" element={<Automoveis />} />
-          <Route path="/pedidos" element={<Pedidos />} />
-          <Route path="/pedidos/novo" element={<FormularioPedido />} />
-          <Route path="/avaliacao" element={<Avaliacao />} />
+        <Route element={<RotaPrivada />}>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Inicio />} />
+            <Route path="/clientes" element={<Clientes />} />
+            <Route path="/automoveis" element={<Automoveis />} />
+            <Route path="/pedidos" element={<Pedidos />} />
+            <Route path="/pedidos/novo" element={<FormularioPedido />} />
+            <Route path="/avaliacao" element={<Avaliacao />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

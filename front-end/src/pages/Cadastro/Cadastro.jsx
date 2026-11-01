@@ -1,6 +1,6 @@
 
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Field from '../../components/Field/Field.jsx'
 import Button from '../../components/Button/Button.jsx'
 import CarIcon from '../../components/CarIcon/CarIcon.jsx'
@@ -9,26 +9,57 @@ import estilos from './Cadastro.module.css'
 export default function Cadastro() {
   const [dados, setDados] = useState({
     nome: '',
-    usuario: '',
-    senha: '',
-    role: 'CLIENTE',
-    agenteTipo: 'Banco'
+    email: '',
+    senha: ''
   })
 
   const [erro, setErro] = useState('')
+  const [carregando, setCarregando] = useState(false)
+
+  const navegar = useNavigate()
 
   const mudar = (campo) => (e) => {
     setDados({ ...dados, [campo]: e.target.value })
   }
 
-  const enviar = (e) => {
+  const enviar = async (e) => {
     e.preventDefault()
+    setErro('')
 
     if (dados.senha.length < 3) {
       return setErro('A senha precisa ter ao menos 3 caracteres.')
     }
 
-    setErro('O cadastro estará disponível quando o backend for conectado.')
+    try {
+      setCarregando(true)
+
+      const resposta = await fetch(
+        'http://localhost:8080/api/usuarios/cadastro',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(dados)
+        }
+      )
+
+      const resultado = await resposta.json()
+
+      if (!resposta.ok) {
+        throw new Error(
+          typeof resultado === 'string'
+            ? resultado
+            : 'Não foi possível realizar o cadastro.'
+        )
+      }
+
+      navegar('/login')
+    } catch (erro) {
+      setErro(erro.message || 'Erro ao conectar com o servidor.')
+    } finally {
+      setCarregando(false)
+    }
   }
 
   return (
@@ -55,45 +86,6 @@ export default function Cadastro() {
             </div>
           )}
 
-          <div className={estilos.opcoes}>
-            <label>
-              <input
-                id="tipo-cliente"
-                type="radio"
-                checked={dados.role === 'CLIENTE'}
-                onChange={() =>
-                  setDados({ ...dados, role: 'CLIENTE' })
-                }
-              />
-              Cliente
-            </label>
-
-            <label>
-              <input
-                id="tipo-agente"
-                type="radio"
-                checked={dados.role === 'AGENTE'}
-                onChange={() =>
-                  setDados({ ...dados, role: 'AGENTE' })
-                }
-              />
-              Agente
-            </label>
-          </div>
-
-          {dados.role === 'AGENTE' && (
-            <Field
-              id="tipo-agente-select"
-              as="select"
-              label="Tipo de agente"
-              value={dados.agenteTipo}
-              onChange={mudar('agenteTipo')}
-            >
-              <option>Banco</option>
-              <option>Empresa</option>
-            </Field>
-          )}
-
           <Field
             id="nome"
             label="Nome completo"
@@ -103,10 +95,11 @@ export default function Cadastro() {
           />
 
           <Field
-            id="usuario"
-            label="Usuário"
-            value={dados.usuario}
-            onChange={mudar('usuario')}
+            id="email"
+            label="E-mail"
+            type="email"
+            value={dados.email}
+            onChange={mudar('email')}
             required
           />
 
@@ -119,8 +112,12 @@ export default function Cadastro() {
             required
           />
 
-          <Button id="botao-criar-conta" type="submit">
-            Criar conta
+          <Button
+            id="botao-criar-conta"
+            type="submit"
+            disabled={carregando}
+          >
+            {carregando ? 'Cadastrando...' : 'Criar conta'}
           </Button>
 
           <p className={estilos.alternativa}>
