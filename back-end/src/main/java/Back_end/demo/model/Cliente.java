@@ -1,6 +1,8 @@
 package Back_end.demo.model;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Cliente {
@@ -14,6 +16,10 @@ public class Cliente {
     private String nome;
     private String endereco;
     private String profissao;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "cliente_id")
+    private List<Emprego> empregos = new ArrayList<>();
 
     public Cliente() {
     }
@@ -72,5 +78,13 @@ public class Cliente {
 
     public void setProfissao(String profissao) {
         this.profissao = profissao;
+    }
+
+    public List<Emprego> getEmpregos() {
+        return empregos;
+    }
+
+    public void setEmpregos(List<Emprego> empregos) {
+        this.empregos = empregos;
     }
 }
