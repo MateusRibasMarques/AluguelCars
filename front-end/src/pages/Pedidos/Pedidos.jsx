@@ -9,15 +9,21 @@ import Modal from '../../components/Modal/Modal.jsx'
 import Button from '../../components/Button/Button.jsx'
 import estilos from './Pedidos.module.css'
 
-const fmtData = data => {
+const fmtData = (data) => {
+  if (!data) return '-'
+
+  return new Date(`${data}T00:00:00`).toLocaleDateString('pt-BR')
+}
+
+const fmtDataHora = (data) => {
   if (!data) return '-'
 
   return new Date(data).toLocaleString('pt-BR')
 }
 
-const nomeCliente = pedido => pedido.cliente?.nome ?? '-'
+const nomeCliente = (pedido) => pedido.cliente?.nome ?? '-'
 
-const nomeCarro = pedido => {
+const nomeCarro = (pedido) => {
   const carro = pedido.carro
 
   return carro
@@ -25,7 +31,7 @@ const nomeCarro = pedido => {
     : '-'
 }
 
-const statusLegivel = status => {
+const statusLegivel = (status) => {
   const statusMap = {
     PENDENTE: 'Pendente',
     EM_ANALISE: 'Em análise',
@@ -74,29 +80,39 @@ export default function Pedidos() {
     {
       key: 'cliente',
       label: 'Cliente',
-      render: pedido => nomeCliente(pedido)
+      render: (pedido) => nomeCliente(pedido)
     },
     {
       key: 'carro',
       label: 'Automóvel',
-      render: pedido => nomeCarro(pedido)
+      render: (pedido) => nomeCarro(pedido)
+    },
+    {
+      key: 'inicio',
+      label: 'Retirada',
+      render: (pedido) => fmtData(pedido.inicio)
+    },
+    {
+      key: 'fim',
+      label: 'Devolução',
+      render: (pedido) => fmtData(pedido.fim)
     },
     {
       key: 'dataSolicitacao',
       label: 'Data do pedido',
-      render: pedido => fmtData(pedido.dataSolicitacao)
+      render: (pedido) => fmtDataHora(pedido.dataSolicitacao)
     },
     {
       key: 'status',
       label: 'Status',
-      render: pedido => (
+      render: (pedido) => (
         <StatusBadge status={pedido.status} />
       )
     },
     {
       key: 'acoes',
       label: 'Ações',
-      render: pedido => (
+      render: (pedido) => (
         <div className={estilos.acoes}>
           <Button
             size="pequeno"
@@ -160,7 +176,15 @@ export default function Pedidos() {
 
             <span>
               <b>Data da solicitação:</b>{' '}
-              {fmtData(selecionado.dataSolicitacao)}
+              {fmtDataHora(selecionado.dataSolicitacao)}
+            </span>
+
+            <span>
+              <b>Retirada:</b> {fmtData(selecionado.inicio)}
+            </span>
+
+            <span>
+              <b>Devolução:</b> {fmtData(selecionado.fim)}
             </span>
 
             <span>

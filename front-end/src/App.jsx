@@ -12,6 +12,7 @@ import Automoveis from './pages/Automoveis/Automoveis.jsx'
 import Pedidos from './pages/Pedidos/Pedidos.jsx'
 import FormularioPedido from './pages/FormularioPedido/FormularioPedido.jsx'
 import Avaliacao from './pages/Avaliacao/Avaliacao.jsx'
+import DadosCliente from './pages/DadosCliente/DadosCliente.jsx'
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
             <Route path="/pedidos" element={<Pedidos />} />
             <Route path="/pedidos/novo" element={<FormularioPedido />} />
             <Route path="/avaliacao" element={<Avaliacao />} />
+            <Route path="/dados-cliente" element={<DadosCliente />} />
           </Route>
         </Route>
       </Routes>
