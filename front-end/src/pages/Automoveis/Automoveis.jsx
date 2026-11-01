@@ -1,5 +1,6 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { api } from '../../services/api.js'
 import PageHeader from '../../components/PageHeader/PageHeader.jsx'
 import Table from '../../components/Table/Table.jsx'
 import Modal from '../../components/Modal/Modal.jsx'
@@ -17,16 +18,115 @@ const automovelVazio = {
 }
 
 export default function Automoveis() {
+  const [automoveis, setAutomoveis] = useState([])
   const [edicao, setEdicao] = useState(null)
+  const [erro, setErro] = useState('')
+  const [carregando, setCarregando] = useState(true)
 
-  const automoveis = []
+  useEffect(() => {
+    carregarAutomoveis()
+  }, [])
 
-  const mudar = (campo) => (e) =>
+  async function carregarAutomoveis() {
+    try {
+      setCarregando(true)
+      setErro('')
+
+      const resposta = await api('/api/carros')
+
+      if (!resposta.ok) {
+        throw new Error('Não foi possível carregar os automóveis.')
+      }
+
+      const dados = await resposta.json()
+      setAutomoveis(dados)
+    } catch (erro) {
+      setErro(erro.message)
+    } finally {
+      setCarregando(false)
+    }
+  }
+
+  const mudar = campo => e => {
     setEdicao({ ...edicao, [campo]: e.target.value })
+  }
 
-  const enviar = (e) => {
+  async function enviar(e) {
     e.preventDefault()
-    setEdicao(null)
+
+    try {
+      setErro('')
+
+      const carro = {
+        matricula: edicao.matricula,
+        ano: Number(edicao.ano),
+        marca: edicao.marca,
+        modelo: edicao.modelo,
+        placa: edicao.placa,
+        proprietario: edicao.proprietario.toUpperCase()
+      }
+
+      const editando = Boolean(edicao.id)
+
+      const resposta = await api(
+        editando
+          ? `/api/carros/${edicao.id}`
+          : '/api/carros',
+        {
+          method: editando ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(carro)
+        }
+      )
+
+      if (!resposta.ok) {
+        const mensagem = await resposta.text()
+        throw new Error(
+          mensagem || 'Não foi possível salvar o automóvel.'
+        )
+      }
+
+      setEdicao(null)
+      await carregarAutomoveis()
+    } catch (erro) {
+      setErro(erro.message)
+    }
+  }
+
+  async function excluir(id) {
+    if (!window.confirm('Deseja realmente excluir este automóvel?')) {
+      return
+    }
+
+    try {
+      setErro('')
+
+      const resposta = await api(`/api/carros/${id}`, {
+        method: 'DELETE'
+      })
+
+      if (!resposta.ok) {
+        throw new Error('Não foi possível excluir o automóvel.')
+      }
+
+      await carregarAutomoveis()
+    } catch (erro) {
+      setErro(erro.message)
+    }
+  }
+
+  function editar(carro) {
+    setErro('')
+
+    setEdicao({
+      ...carro,
+      proprietario: carro.proprietario
+        ? carro.proprietario.charAt(0) +
+          carro.proprietario.slice(1).toLowerCase()
+        : 'Empresa'
+    })
   }
 
   const colunas = [
@@ -35,16 +135,32 @@ export default function Automoveis() {
     { key: 'modelo', label: 'Modelo' },
     { key: 'ano', label: 'Ano' },
     { key: 'placa', label: 'Placa' },
-    { key: 'proprietario', label: 'Propriedade' },
+    {
+      key: 'proprietario',
+      label: 'Propriedade',
+      render: carro => carro.proprietario
+        ? carro.proprietario.charAt(0) +
+          carro.proprietario.slice(1).toLowerCase()
+        : 'Não informado'
+    },
     {
       key: 'acoes',
       label: 'Ações',
-      render: () => (
+      render: carro => (
         <div className={estilos.acoes}>
-          <Button size="pequeno" variant="contorno" disabled>
+          <Button
+            size="pequeno"
+            variant="contorno"
+            onClick={() => editar(carro)}
+          >
             Editar
           </Button>
-          <Button size="pequeno" variant="perigo" disabled>
+
+          <Button
+            size="pequeno"
+            variant="perigo"
+            onClick={() => excluir(carro.id)}
+          >
             Excluir
           </Button>
         </div>
@@ -60,18 +176,31 @@ export default function Automoveis() {
         action={
           <Button
             id="botao-novo-automovel"
-            onClick={() => setEdicao({ ...automovelVazio })}
+            onClick={() => {
+              setErro('')
+              setEdicao({ ...automovelVazio })
+            }}
           >
             Novo automóvel
           </Button>
         }
       />
 
-      <Table columns={colunas} rows={automoveis} />
+      {erro && (
+        <div role="alert" className={estilos.erro}>
+          {erro}
+        </div>
+      )}
+
+      {carregando ? (
+        <p>Carregando automóveis...</p>
+      ) : (
+        <Table columns={colunas} rows={automoveis} />
+      )}
 
       {edicao && (
         <Modal
-          title="Novo automóvel"
+          title={edicao.id ? 'Editar automóvel' : 'Novo automóvel'}
           onClose={() => setEdicao(null)}
         >
           <form

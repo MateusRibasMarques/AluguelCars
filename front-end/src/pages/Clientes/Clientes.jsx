@@ -1,5 +1,6 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { api } from '../../services/api.js'
 import PageHeader from '../../components/PageHeader/PageHeader.jsx'
 import Table from '../../components/Table/Table.jsx'
 import Modal from '../../components/Modal/Modal.jsx'
@@ -17,21 +18,56 @@ const clienteVazio = {
 }
 
 export default function Clientes() {
+  const [clientes, setClientes] = useState([])
   const [edicao, setEdicao] = useState(null)
+  const [erro, setErro] = useState('')
+  const [carregando, setCarregando] = useState(true)
 
-  // Sem backend, a tabela permanece vazia.
-  const clientes = []
+  useEffect(() => {
+    carregarClientes()
+  }, [])
 
-  const mudar = (campo) => (e) =>
+  async function carregarClientes() {
+    try {
+      setCarregando(true)
+      setErro('')
+
+      const resposta = await api('/api/clientes')
+
+      if (!resposta.ok) {
+        throw new Error('Não foi possível carregar os clientes.')
+      }
+
+      const dados = await resposta.json()
+
+      const clientesFormatados = dados.map(cliente => ({
+        ...cliente,
+        rendimentos: (cliente.empregos || []).map(emprego => ({
+          empregador: emprego.empregador,
+          valor: emprego.rendimento
+        }))
+      }))
+
+      setClientes(clientesFormatados)
+    } catch (erro) {
+      setErro(erro.message)
+    } finally {
+      setCarregando(false)
+    }
+  }
+
+  const mudar = campo => e => {
     setEdicao({ ...edicao, [campo]: e.target.value })
+  }
 
-  const mudarRendimento = (i, campo, valor) =>
+  const mudarRendimento = (i, campo, valor) => {
     setEdicao({
       ...edicao,
       rendimentos: edicao.rendimentos.map((r, j) =>
         j === i ? { ...r, [campo]: valor } : r
       )
     })
+  }
 
   const adicionarRendimento = () => {
     if (edicao.rendimentos.length >= 3) return
@@ -45,15 +81,87 @@ export default function Clientes() {
     })
   }
 
-  const removerRendimento = (i) =>
+  const removerRendimento = i => {
     setEdicao({
       ...edicao,
       rendimentos: edicao.rendimentos.filter((_, j) => j !== i)
     })
+  }
 
-  const enviar = (e) => {
+  async function enviar(e) {
     e.preventDefault()
-    setEdicao(null)
+
+    try {
+      setErro('')
+
+      const cliente = {
+        nome: edicao.nome,
+        rg: edicao.rg,
+        cpf: edicao.cpf,
+        endereco: edicao.endereco,
+        profissao: edicao.profissao,
+        empregos: edicao.rendimentos.map(r => ({
+          empregador: r.empregador,
+          rendimento: Number(r.valor)
+        }))
+      }
+
+      const editando = Boolean(edicao.id)
+
+      const resposta = await api(
+        editando
+          ? `/api/clientes/${edicao.id}`
+          : '/api/clientes',
+        {
+          method: editando ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(cliente)
+        }
+      )
+
+      if (!resposta.ok) {
+        const mensagem = await resposta.text()
+        throw new Error(mensagem || 'Não foi possível salvar o cliente.')
+      }
+
+      setEdicao(null)
+      await carregarClientes()
+    } catch (erro) {
+      setErro(erro.message)
+    }
+  }
+
+  async function excluir(id) {
+    if (!window.confirm('Deseja realmente excluir este cliente?')) {
+      return
+    }
+
+    try {
+      setErro('')
+
+      const resposta = await api(`/api/clientes/${id}`, {
+        method: 'DELETE'
+      })
+
+      if (!resposta.ok) {
+        throw new Error('Não foi possível excluir o cliente.')
+      }
+
+      await carregarClientes()
+    } catch (erro) {
+      setErro(erro.message)
+    }
+  }
+
+  function editar(cliente) {
+    setErro('')
+
+    setEdicao({
+      ...cliente,
+      rendimentos: cliente.rendimentos.map(r => ({ ...r }))
+    })
   }
 
   const colunas = [
@@ -63,10 +171,11 @@ export default function Clientes() {
     {
       key: 'renda',
       label: 'Renda total',
-      render: (c) =>
+      render: c =>
         Number(
           c.rendimentos.reduce(
-            (soma, r) => soma + Number(r.valor), 0
+            (soma, r) => soma + Number(r.valor || 0),
+            0
           )
         ).toLocaleString('pt-BR', {
           style: 'currency',
@@ -76,13 +185,21 @@ export default function Clientes() {
     {
       key: 'acoes',
       label: 'Ações',
-      render: () => (
+      render: c => (
         <div className={estilos.acoes}>
-          <Button size="pequeno" variant="contorno" disabled>
+          <Button
+            size="pequeno"
+            variant="contorno"
+            onClick={() => editar(c)}
+          >
             Editar
           </Button>
 
-          <Button size="pequeno" variant="perigo" disabled>
+          <Button
+            size="pequeno"
+            variant="perigo"
+            onClick={() => excluir(c.id)}
+          >
             Excluir
           </Button>
         </div>
@@ -98,18 +215,31 @@ export default function Clientes() {
         action={
           <Button
             id="botao-novo-cliente"
-            onClick={() => setEdicao({ ...clienteVazio, rendimentos: [] })}
+            onClick={() => {
+              setErro('')
+              setEdicao({ ...clienteVazio, rendimentos: [] })
+            }}
           >
             Novo cliente
           </Button>
         }
       />
 
-      <Table columns={colunas} rows={clientes} />
+      {erro && (
+        <div role="alert" className={estilos.erro}>
+          {erro}
+        </div>
+      )}
+
+      {carregando ? (
+        <p>Carregando clientes...</p>
+      ) : (
+        <Table columns={colunas} rows={clientes} />
+      )}
 
       {edicao && (
         <Modal
-          title="Novo cliente"
+          title={edicao.id ? 'Editar cliente' : 'Novo cliente'}
           onClose={() => setEdicao(null)}
         >
           <form
@@ -171,7 +301,7 @@ export default function Clientes() {
                   <Field
                     label="Entidade empregadora"
                     value={r.empregador}
-                    onChange={(e) =>
+                    onChange={e =>
                       mudarRendimento(i, 'empregador', e.target.value)
                     }
                     required
@@ -182,7 +312,7 @@ export default function Clientes() {
                     type="number"
                     min="0"
                     value={r.valor}
-                    onChange={(e) =>
+                    onChange={e =>
                       mudarRendimento(i, 'valor', e.target.value)
                     }
                     required
@@ -220,7 +350,10 @@ export default function Clientes() {
                 Cancelar
               </Button>
 
-              <Button id="botao-salvar-cliente" type="submit">
+              <Button
+                id="botao-salvar-cliente"
+                type="submit"
+              >
                 Salvar cliente
               </Button>
             </div>

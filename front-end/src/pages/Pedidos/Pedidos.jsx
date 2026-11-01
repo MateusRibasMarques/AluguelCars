@@ -1,6 +1,7 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { api } from '../../services/api.js'
 import PageHeader from '../../components/PageHeader/PageHeader.jsx'
 import Table from '../../components/Table/Table.jsx'
 import StatusBadge from '../../components/StatusBadge/StatusBadge.jsx'
@@ -8,79 +9,101 @@ import Modal from '../../components/Modal/Modal.jsx'
 import Button from '../../components/Button/Button.jsx'
 import estilos from './Pedidos.module.css'
 
-const ETAPAS = [
-  ['EM_ANALISE', 'Em análise'],
-  ['APROVADO', 'Aprovado'],
-  ['CONTRATO_EXECUTADO', 'Contrato']
-]
+const fmtData = data => {
+  if (!data) return '-'
 
-const fmtData = (d) => d ? d.split('-').reverse().join('/') : '-'
+  return new Date(data).toLocaleString('pt-BR')
+}
 
-const fmtMoeda = (v) =>
-  Number(v).toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  })
+const nomeCliente = pedido => pedido.cliente?.nome ?? '-'
+
+const nomeCarro = pedido => {
+  const carro = pedido.carro
+
+  return carro
+    ? `${carro.marca} ${carro.modelo} (${carro.placa})`
+    : '-'
+}
+
+const statusLegivel = status => {
+  const statusMap = {
+    PENDENTE: 'Pendente',
+    EM_ANALISE: 'Em análise',
+    APROVADA: 'Aprovada',
+    REPROVADA: 'Reprovada',
+    CANCELADA: 'Cancelada'
+  }
+
+  return statusMap[status] ?? status
+}
 
 export default function Pedidos() {
   const navegar = useNavigate()
+
+  const [pedidos, setPedidos] = useState([])
   const [selecionado, setSelecionado] = useState(null)
+  const [erro, setErro] = useState('')
+  const [carregando, setCarregando] = useState(true)
 
-  // Sem backend: a tabela permanece vazia.
-  const pedidos = []
+  useEffect(() => {
+    carregarPedidos()
+  }, [])
 
-  const nomeCliente = (pedido) => pedido.cliente?.nome ?? '-'
-  const nomeCarro = (pedido) => {
-    const carro = pedido.automovel
+  async function carregarPedidos() {
+    try {
+      setCarregando(true)
+      setErro('')
 
-    return carro
-      ? `${carro.marca} ${carro.modelo} (${carro.placa})`
-      : '-'
+      const resposta = await api('/api/solicitacoes')
+
+      if (!resposta.ok) {
+        throw new Error('Não foi possível carregar os pedidos.')
+      }
+
+      const dados = await resposta.json()
+      setPedidos(dados)
+    } catch (erro) {
+      setErro(erro.message)
+    } finally {
+      setCarregando(false)
+    }
   }
-
-  const etapaAtual = selecionado
-    ? ETAPAS.findIndex(([status]) => status === selecionado.status)
-    : -1
 
   const colunas = [
     { key: 'id', label: '#' },
     {
       key: 'cliente',
       label: 'Cliente',
-      render: (p) => nomeCliente(p)
+      render: pedido => nomeCliente(pedido)
     },
     {
       key: 'carro',
       label: 'Automóvel',
-      render: (p) => nomeCarro(p)
+      render: pedido => nomeCarro(pedido)
     },
     {
-      key: 'periodo',
-      label: 'Período',
-      render: (p) => `${fmtData(p.inicio)} → ${fmtData(p.fim)}`
+      key: 'dataSolicitacao',
+      label: 'Data do pedido',
+      render: pedido => fmtData(pedido.dataSolicitacao)
     },
     {
       key: 'status',
       label: 'Status',
-      render: (p) => <StatusBadge status={p.status} />
+      render: pedido => (
+        <StatusBadge status={pedido.status} />
+      )
     },
     {
       key: 'acoes',
       label: 'Ações',
-      render: (p) => (
+      render: pedido => (
         <div className={estilos.acoes}>
           <Button
             size="pequeno"
             variant="escuro"
-            onClick={() => setSelecionado(p)}
+            onClick={() => setSelecionado(pedido)}
           >
             Consultar
-          </Button>
-          <Button size="pequeno" variant="contorno" disabled>
-            Modificar
-          </Button>
-          <Button size="pequeno" variant="perigo" disabled>
-            Cancelar
           </Button>
         </div>
       )
@@ -102,18 +125,31 @@ export default function Pedidos() {
         }
       />
 
-      <Table
-        columns={colunas}
-        rows={pedidos}
-        empty="Nenhum pedido cadastrado."
-      />
+      {erro && (
+        <div role="alert" className={estilos.erro}>
+          {erro}
+        </div>
+      )}
+
+      {carregando ? (
+        <p>Carregando pedidos...</p>
+      ) : (
+        <Table
+          columns={colunas}
+          rows={pedidos}
+          empty="Nenhum pedido cadastrado."
+        />
+      )}
 
       {selecionado && (
         <Modal
           title={`Pedido #${selecionado.id}`}
           onClose={() => setSelecionado(null)}
         >
-          <div id="detalhes-pedido" className={estilos.detalhes}>
+          <div
+            id="detalhes-pedido"
+            className={estilos.detalhes}
+          >
             <span>
               <b>Cliente:</b> {nomeCliente(selecionado)}
             </span>
@@ -123,39 +159,56 @@ export default function Pedidos() {
             </span>
 
             <span>
-              <b>Período:</b> {fmtData(selecionado.inicio)} a {fmtData(selecionado.fim)}
+              <b>Data da solicitação:</b>{' '}
+              {fmtData(selecionado.dataSolicitacao)}
             </span>
 
             <span>
-              <b>Contrato de crédito:</b>{' '}
-              {selecionado.credito
-                ? `${selecionado.credito.banco} — ${fmtMoeda(selecionado.credito.valor)}`
-                : 'Sem crédito associado'}
+              <b>Status:</b>{' '}
+              {statusLegivel(selecionado.status)}
             </span>
-
-            {selecionado.parecer && (
-              <span>
-                <b>Parecer do agente:</b> {selecionado.parecer}
-              </span>
-            )}
           </div>
 
-          {selecionado.status === 'REPROVADO' ||
-          selecionado.status === 'CANCELADO' ? (
-            <StatusBadge status={selecionado.status} />
-          ) : (
-            <div id="linha-do-tempo" className={estilos.linhaTempo}>
-              {ETAPAS.map(([status, nome], i) => (
+          <div
+            id="linha-do-tempo"
+            className={estilos.linhaTempo}
+          >
+            {[
+              ['PENDENTE', 'Pendente'],
+              ['EM_ANALISE', 'Em análise'],
+              ['APROVADA', 'Aprovada']
+            ].map(([status, nome]) => {
+              const ordem = [
+                'PENDENTE',
+                'EM_ANALISE',
+                'APROVADA'
+              ]
+
+              const atual = ordem.indexOf(selecionado.status)
+              const indice = ordem.indexOf(status)
+
+              const concluida =
+                atual >= 0 && indice <= atual
+
+              return (
                 <div
                   key={status}
                   className={`${estilos.etapa} ${
-                    i <= etapaAtual ? estilos.concluida : ''
+                    concluida ? estilos.concluida : ''
                   }`}
                 >
                   {nome}
                 </div>
-              ))}
-            </div>
+              )
+            })}
+          </div>
+
+          {selecionado.status === 'REPROVADA' && (
+            <StatusBadge status="REPROVADA" />
+          )}
+
+          {selecionado.status === 'CANCELADA' && (
+            <StatusBadge status="CANCELADA" />
           )}
         </Modal>
       )}
