@@ -48,13 +48,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String email = jwtService.extrairEmail(token);
 
+            System.out.println("EMAIL DO TOKEN: [" + email + "]");
+
             Usuario usuario = usuarioRepository.findByEmail(email)
                     .orElse(null);
+
+            System.out.println("USUARIO ENCONTRADO: " + (usuario != null));
+
+            if (usuario != null) {
+                System.out.println("TIPO DO USUARIO: " + usuario.getTipo());
+            }
 
             if (usuario != null && jwtService.validarToken(token, usuario)) {
 
                 var autenticacao = new UsernamePasswordAuthenticationToken(
-                        usuario,
+                        usuario.getEmail(),
                         null,
                         List.of(new SimpleGrantedAuthority(
                                 "ROLE_" + usuario.getTipo().name()))
@@ -65,6 +73,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception e) {
+            System.out.println("ERRO AO VALIDAR TOKEN: " + e.getMessage());
             SecurityContextHolder.clearContext();
         }
 

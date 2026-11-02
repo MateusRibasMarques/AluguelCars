@@ -1,11 +1,11 @@
+
 package Back_end.demo.controller;
 
 import Back_end.demo.model.Contrato;
 import Back_end.demo.service.ContratoService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/contratos")
@@ -19,29 +19,60 @@ public class ContratoController {
     }
 
     @PostMapping
-    public ResponseEntity<Contrato> cadastrar(@RequestBody Contrato contrato) {
-        return ResponseEntity.ok(contratoService.salvar(contrato));
+    public ResponseEntity<?> cadastrar(
+            @RequestBody Contrato contrato,
+            Authentication authentication) {
+
+        try {
+            return ResponseEntity.ok(
+                    contratoService.salvar(
+                            contrato, authentication.getName()
+                    )
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping
-    public ResponseEntity<List<Contrato>> listarTodos() {
-        return ResponseEntity.ok(contratoService.listarTodos());
+    public ResponseEntity<?> listarTodos(Authentication authentication) {
+        try {
+            return ResponseEntity.ok(
+                    contratoService.listarTodos(authentication.getName())
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Contrato> buscarPorId(@PathVariable Long id) {
-        return contratoService.buscarPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> buscarPorId(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        try {
+            return contratoService.buscarPorId(
+                    id, authentication.getName()
+            )
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        if (contratoService.buscarPorId(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<?> excluir(
+            @PathVariable Long id,
+            Authentication authentication) {
 
-        contratoService.excluir(id);
-        return ResponseEntity.noContent().build();
+        try {
+            contratoService.excluir(id, authentication.getName());
+            return ResponseEntity.noContent().build();
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

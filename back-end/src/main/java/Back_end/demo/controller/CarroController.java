@@ -1,8 +1,10 @@
+
 package Back_end.demo.controller;
 
 import Back_end.demo.model.Carro;
 import Back_end.demo.service.CarroService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,9 +21,16 @@ public class CarroController {
     }
 
     @PostMapping
-    public ResponseEntity<Carro> cadastrar(@RequestBody Carro carro) {
-        Carro novoCarro = carroService.salvar(carro);
-        return ResponseEntity.ok(novoCarro);
+    public ResponseEntity<?> cadastrar(
+            @RequestBody Carro carro,
+            Authentication authentication) {
+        try {
+            return ResponseEntity.ok(
+                    carroService.salvar(authentication.getName(), carro)
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping
@@ -30,32 +39,37 @@ public class CarroController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Carro> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
         return carroService.buscarPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Carro> atualizar(
+    public ResponseEntity<?> atualizar(
             @PathVariable Long id,
-            @RequestBody Carro carro) {
-
-        return carroService.buscarPorId(id)
-                .map(carroExistente -> {
-                    carro.setId(id);
-                    return ResponseEntity.ok(carroService.salvar(carro));
-                })
-                .orElse(ResponseEntity.notFound().build());
+            @RequestBody Carro carro,
+            Authentication authentication) {
+        try {
+            return ResponseEntity.ok(
+                    carroService.atualizar(
+                            id, carro, authentication.getName()
+                    )
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        if (carroService.buscarPorId(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> excluir(
+            @PathVariable Long id,
+            Authentication authentication) {
+        try {
+            carroService.excluir(id, authentication.getName());
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        carroService.excluir(id);
-        return ResponseEntity.noContent().build();
     }
 }

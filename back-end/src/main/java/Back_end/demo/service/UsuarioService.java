@@ -34,7 +34,12 @@ public class UsuarioService {
             );
         }
 
-        usuario.setTipo(TipoUsuario.CLIENTE);
+        if (usuario.getTipo() == null) {
+            throw new IllegalArgumentException(
+                    "Selecione o tipo de usuário."
+            );
+        }
+
         usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
 
         return usuarioRepository.save(usuario);

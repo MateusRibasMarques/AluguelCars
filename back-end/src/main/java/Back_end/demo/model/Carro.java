@@ -1,3 +1,4 @@
+
 package Back_end.demo.model;
 
 import jakarta.persistence.*;
@@ -15,15 +16,22 @@ public class Carro {
     private String modelo;
     private String placa;
 
+    @Enumerated(EnumType.STRING)
+    private TipoProprietario proprietario;
+
     public Carro() {
     }
 
-    public Carro(String matricula, Integer ano, String marca, String modelo, String placa) {
+    public Carro(String matricula, Integer ano, String marca,
+                 String modelo, String placa,
+                 TipoProprietario proprietario) {
+
         this.matricula = matricula;
         this.ano = ano;
         this.marca = marca;
         this.modelo = modelo;
         this.placa = placa;
+        this.proprietario = proprietario;
     }
 
     public Long getId() {
@@ -72,5 +80,13 @@ public class Carro {
 
     public void setPlaca(String placa) {
         this.placa = placa;
+    }
+
+    public TipoProprietario getProprietario() {
+        return proprietario;
+    }
+
+    public void setProprietario(TipoProprietario proprietario) {
+        this.proprietario = proprietario;
     }
 }

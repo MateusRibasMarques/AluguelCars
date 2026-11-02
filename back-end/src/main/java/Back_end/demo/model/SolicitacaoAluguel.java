@@ -1,6 +1,8 @@
+
 package Back_end.demo.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -22,6 +24,13 @@ public class SolicitacaoAluguel {
     private StatusSolicitacao status;
 
     private LocalDateTime dataSolicitacao;
+
+    private LocalDate inicio;
+
+    private LocalDate fim;
+
+    @Column(length = 2000)
+    private String parecer;
 
     public SolicitacaoAluguel() {
         this.status = StatusSolicitacao.PENDENTE;
@@ -66,5 +75,29 @@ public class SolicitacaoAluguel {
 
     public void setDataSolicitacao(LocalDateTime dataSolicitacao) {
         this.dataSolicitacao = dataSolicitacao;
+    }
+
+    public LocalDate getInicio() {
+        return inicio;
+    }
+
+    public void setInicio(LocalDate inicio) {
+        this.inicio = inicio;
+    }
+
+    public LocalDate getFim() {
+        return fim;
+    }
+
+    public void setFim(LocalDate fim) {
+        this.fim = fim;
+    }
+
+    public String getParecer() {
+        return parecer;
+    }
+
+    public void setParecer(String parecer) {
+        this.parecer = parecer;
     }
 }

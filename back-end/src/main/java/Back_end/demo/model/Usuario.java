@@ -19,6 +19,10 @@ public class Usuario {
     @Enumerated(EnumType.STRING)
     private TipoUsuario tipo;
 
+    @OneToOne
+    @JoinColumn(name = "cliente_id", unique = true)
+    private Cliente cliente;
+
     public Usuario() {
     }
 
@@ -67,5 +71,13 @@ public class Usuario {
 
     public void setTipo(TipoUsuario tipo) {
         this.tipo = tipo;
+    }
+
+    public Cliente getCliente() {
+        return cliente;
+    }
+
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
     }
 }

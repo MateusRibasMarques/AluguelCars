@@ -1,11 +1,11 @@
+
 package Back_end.demo.controller;
 
 import Back_end.demo.model.Cliente;
 import Back_end.demo.service.ClienteService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/clientes")
@@ -18,44 +18,109 @@ public class ClienteController {
         this.clienteService = clienteService;
     }
 
+    @PostMapping("/me")
+    public ResponseEntity<?> cadastrarMeusDados(
+            @RequestBody Cliente cliente,
+            Authentication authentication) {
+
+        try {
+            Cliente novoCliente = clienteService.cadastrarDadosCliente(
+                    authentication.getName(), cliente
+            );
+
+            return ResponseEntity.ok(novoCliente);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> meusDados(Authentication authentication) {
+
+        return clienteService.buscarPorEmailUsuario(
+                authentication.getName()
+        )
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping
-    public ResponseEntity<Cliente> cadastrar(@RequestBody Cliente cliente) {
-        Cliente novoCliente = clienteService.salvar(cliente);
-        return ResponseEntity.ok(novoCliente);
+    public ResponseEntity<?> cadastrar(
+            @RequestBody Cliente cliente,
+            Authentication authentication) {
+
+        try {
+            return ResponseEntity.ok(
+                    clienteService.salvarComoAgente(
+                            authentication.getName(), cliente
+                    )
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping
-    public ResponseEntity<List<Cliente>> listarTodos() {
-        return ResponseEntity.ok(clienteService.listarTodos());
+    public ResponseEntity<?> listarTodos(Authentication authentication) {
+
+        try {
+            return ResponseEntity.ok(
+                    clienteService.listarTodos(authentication.getName())
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Cliente> buscarPorId(@PathVariable Long id) {
-        return clienteService.buscarPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> buscarPorId(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        try {
+            return clienteService.buscarPorIdComoAgente(
+                    id, authentication.getName()
+            )
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Cliente> atualizar(
+    public ResponseEntity<?> atualizar(
             @PathVariable Long id,
-            @RequestBody Cliente cliente) {
+            @RequestBody Cliente cliente,
+            Authentication authentication) {
 
-        return clienteService.buscarPorId(id)
-                .map(clienteExistente -> {
-                    cliente.setId(id);
-                    return ResponseEntity.ok(clienteService.salvar(cliente));
-                })
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            return ResponseEntity.ok(
+                    clienteService.atualizarComoAgente(
+                            id, cliente, authentication.getName()
+                    )
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        if (clienteService.buscarPorId(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<?> excluir(
+            @PathVariable Long id,
+            Authentication authentication) {
 
-        clienteService.excluir(id);
-        return ResponseEntity.noContent().build();
+        try {
+            clienteService.excluirComoAgente(
+                    id, authentication.getName()
+            );
+
+            return ResponseEntity.noContent().build();
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
