@@ -4,19 +4,28 @@ import CarIcon from '../CarIcon/CarIcon.jsx'
 import estilos from './Header.module.css'
 
 export default function Header() {
+  const tipoUsuario = localStorage.getItem('tipoUsuario')
+
   const links = [
-    { to: '/', label: 'Início', end: true },
+    { to: '/inicio', label: 'Início', end: true },
     { to: '/pedidos', label: 'Pedidos', end: true },
-    { to: '/pedidos/novo', label: 'Novo pedido' },
-    { to: '/avaliacao', label: 'Avaliação' },
-    { to: '/clientes', label: 'Clientes' },
-    { to: '/automoveis', label: 'Automóveis' }
+
+    ...(tipoUsuario === 'CLIENTE'
+      ? [
+          { to: '/dados-cliente', label: 'Dados do cliente' },
+          { to: '/pedidos/novo', label: 'Novo pedido' }
+        ]
+      : [
+          { to: '/avaliacao', label: 'Avaliação' },
+          { to: '/clientes', label: 'Clientes' },
+          { to: '/automoveis', label: 'Automóveis' }
+        ])
   ]
 
   return (
     <header id="cabecalho" className={estilos.cabecalho}>
       <NavLink
-        to="/"
+        to="/inicio"
         id="botao-logo"
         className={estilos.logo}
         aria-label="Ir para o início"

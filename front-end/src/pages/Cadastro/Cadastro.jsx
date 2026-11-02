@@ -10,7 +10,8 @@ export default function Cadastro() {
   const [dados, setDados] = useState({
     nome: '',
     email: '',
-    senha: ''
+    senha: '',
+    tipo: ''
   })
 
   const [erro, setErro] = useState('')
@@ -25,6 +26,10 @@ export default function Cadastro() {
   const enviar = async (e) => {
     e.preventDefault()
     setErro('')
+
+    if (!dados.tipo) {
+      return setErro('Selecione o tipo de conta.')
+    }
 
     if (dados.senha.length < 3) {
       return setErro('A senha precisa ter ao menos 3 caracteres.')
@@ -61,6 +66,20 @@ export default function Cadastro() {
       setCarregando(false)
     }
   }
+
+  const estiloOpcao = (tipo) => ({
+    flex: 1,
+    padding: '16px 12px',
+    border: dados.tipo === tipo
+      ? '2px solid #7c3aed'
+      : '1px solid #d1d5db',
+    borderRadius: '10px',
+    background: dados.tipo === tipo
+      ? '#f5f0ff'
+      : '#ffffff',
+    cursor: 'pointer',
+    textAlign: 'center'
+  })
 
   return (
     <div id="pagina-cadastro" className={estilos.tela}>
@@ -111,6 +130,47 @@ export default function Cadastro() {
             onChange={mudar('senha')}
             required
           />
+
+          <div>
+            <p style={{ marginBottom: '10px', fontWeight: '600' }}>
+              Como deseja utilizar o sistema?
+            </p>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <label style={estiloOpcao('CLIENTE')}>
+                <input
+                  type="radio"
+                  name="tipo"
+                  value="CLIENTE"
+                  checked={dados.tipo === 'CLIENTE'}
+                  onChange={mudar('tipo')}
+                  required
+                />
+
+                <div style={{ marginTop: '8px', fontWeight: '600' }}>
+                  Cliente
+                </div>
+
+                <small>Solicitar e acompanhar aluguéis</small>
+              </label>
+
+              <label style={estiloOpcao('AGENTE')}>
+                <input
+                  type="radio"
+                  name="tipo"
+                  value="AGENTE"
+                  checked={dados.tipo === 'AGENTE'}
+                  onChange={mudar('tipo')}
+                />
+
+                <div style={{ marginTop: '8px', fontWeight: '600' }}>
+                  Agente
+                </div>
+
+                <small>Gerenciar o sistema</small>
+              </label>
+            </div>
+          </div>
 
           <Button
             id="botao-criar-conta"

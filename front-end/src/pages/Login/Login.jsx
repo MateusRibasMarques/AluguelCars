@@ -49,7 +49,7 @@ export default function Login() {
       localStorage.setItem('tipoUsuario', resultado.tipo)
       localStorage.setItem('nomeUsuario', resultado.nome)
 
-      navegar('/')
+      navegar('/inicio')
     } catch (erro) {
       setErro(erro.message || 'Erro ao conectar com o servidor.')
     } finally {

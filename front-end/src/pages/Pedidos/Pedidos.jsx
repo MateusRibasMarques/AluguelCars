@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { api } from '../../services/api.js'
+import { api } from '../../service/api.js'
 import PageHeader from '../../components/PageHeader/PageHeader.jsx'
 import Table from '../../components/Table/Table.jsx'
 import StatusBadge from '../../components/StatusBadge/StatusBadge.jsx'

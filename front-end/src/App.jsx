@@ -1,5 +1,6 @@
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect } from 'react'
 
 import Layout from './components/Layout/Layout.jsx'
 import RotaPrivada from './components/RotaPrivada/RotaPrivada.jsx'
@@ -15,16 +16,33 @@ import Avaliacao from './pages/Avaliacao/Avaliacao.jsx'
 import DadosCliente from './pages/DadosCliente/DadosCliente.jsx'
 
 function App() {
+  useEffect(() => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('tipoUsuario')
+    localStorage.removeItem('nomeUsuario')
+  }, [])
+
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
 
         <Route element={<RotaPrivada />}>
           <Route element={<Layout />}>
-            <Route path="/" element={<Inicio />} />
-            <Route path="/clientes" element={<Clientes />} />
+            <Route path="/inicio" element={<Inicio />} />
+
+            <Route
+              path="/clientes"
+              element={
+                localStorage.getItem('tipoUsuario') === 'AGENTE'
+                  ? <Clientes />
+                  : <Navigate to="/inicio" replace />
+              }
+            />
+
             <Route path="/automoveis" element={<Automoveis />} />
             <Route path="/pedidos" element={<Pedidos />} />
             <Route path="/pedidos/novo" element={<FormularioPedido />} />
@@ -32,6 +50,8 @@ function App() {
             <Route path="/dados-cliente" element={<DadosCliente />} />
           </Route>
         </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   )

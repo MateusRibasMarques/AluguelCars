@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import PageHeader from '../../components/PageHeader/PageHeader.jsx'
 import Field from '../../components/Field/Field.jsx'
 import Button from '../../components/Button/Button.jsx'
-import { api } from '../../services/api.js'
+import { api } from '../../service/api.js'
 import estilos from './FormularioPedido.module.css'
 
 export default function FormularioPedido() {
